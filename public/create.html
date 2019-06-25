@@ -83,21 +83,22 @@
         $('#new_entry').submit(function(e){
             e.preventDefault();
 
-            var entry = {};
-            entry.title = $('#title').val();
-            entry.content = $('#content').val();
-            entry.createdAt = new Date().getTime();
-            entry.updatedAt = entry.createdAt;
-            entry.views = 0;
-            entry.autor = "Vinicius";
+            var Post = {};
+            Post.title = $('#title').val();
+            Post.content = $('#content').val();
+            Post.createdAt = new Date().getTime();
+            Post.updatedAt = Post.createdAt;
+            Post.autor = "Vinicius";
 
-            console.log(entry);
+            
 
-            var Entry = firebase.database().ref('Entry');
 
-            Entry.push(entry).then(function(data){
+
+            var Post = firebase.database().ref('Post');
+
+            Post.push(Post).then(function(data){
                 console.log(data);
-                //window.location.href = 'entry.html?id='+data.getKey()
+                //window.location.href = 'Post.html?id='+data.getKey()
             }).catch(function(error){
                 alert(error);
                 console.error(error);
@@ -106,6 +107,14 @@
             return false;
         });
 
+        var rootRef = firebase.database().ref();
+        var urlRef = rootRef.child("Entry");
+        urlRef.once("value", function(snapshot) {
+            console.log(snapshot);
+            snapshot.forEach(function(child) {
+                console.log(child.val());
+            });
+        });
 
 
 
