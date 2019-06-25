@@ -1,0 +1,12 @@
+{
+	"hosting": {
+		"site": "teste123987",
+		"public": "public",
+
+	},
+	"rules": {
+
+		".read": "auth != null",
+		".write": "auth != null"
+	}
+}

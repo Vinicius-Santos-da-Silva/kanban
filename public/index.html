@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>teste</title>
+</head>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-database.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script>
+  var firebaseConfig = {
+  	apiKey: "AIzaSyCJIBcDggeg5pAy7ummuGklL3sollJOycs",
+  	authDomain: "dashboard-kanban.firebaseapp.com",
+  	databaseURL: "https://dashboard-kanban.firebaseio.com",
+  	projectId: "dashboard-kanban",
+  	storageBucket: "dashboard-kanban.appspot.com",
+  	messagingSenderId: "429316283039",
+  	appId: "1:429316283039:web:e22e263dceddfb84"
+  };
+  
+  firebase.initializeApp(firebaseConfig);
+  var database = firebase.database();
+
+  firebase.auth().onAuthStateChanged(function (user) {
+  	console.log(user);
+  });
+
+  database.ref('Cliente/Vinicius/Endereco').on('value' , snapshop=>{
+
+  	if (!snapshop.exists()) {
+  		return;
+  	}
+
+  	$('body').append(`<div>Endereco: ${snapshop.val()}<div>`);
+
+  });
+
+
+</script>
+<body>
+	<h1>Teste</h1>
+</body>
+</html>
