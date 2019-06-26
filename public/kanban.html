@@ -20,15 +20,32 @@
   />
 
   <style>
+
     body {
       font-family: "Lato";
       margin: 0;
       padding: 0;
+      background: url(./dist/images/fundo_quadriculado.png);
+      background-repeat: repeat;
+      background-size: 25px 25px;
     }
 
     #myKanban {
       overflow-x: auto;
       padding: 20px 0;
+    }
+
+    #myKanban2 {
+      overflow-x: auto;
+      padding: 20px 0;
+    }
+
+    .kanban-board{
+      margin-top: 0.5em;
+    }
+
+    .kanban-container{
+      width: 500px!important;
     }
 
     .success {
@@ -46,154 +63,189 @@
     .error {
       background: #fb7d44;
     }
+
+    .h-5{
+      height: 3em;
+    }
   </style>
 </head>
 <body>
 
-  <div id="myKanban"></div>
 
-  <button class="btn btn-primary" id="addDefault">Add "Default" board</button>
-  <br />
-  <button class="btn btn-primary mt-2" id="addToDo">Add element in "To Do" Board</button>
-  <br />
-  <button class="btn btn-primary mt-2" id="removeBoard">Remove "Done" Board</button>
-  <br />
-  <button class="btn btn-primary mt-2" id="removeElement">Remove "My Task Test"</button>
+  <div class="kanban d-flex">
+
+
+  </div>
 
   <script src="./dist/jkanban.min.js"></script>
+  <script src="./dist/firebase.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script>
 
-   var firebaseConfig = {
-    apiKey: "AIzaSyCJIBcDggeg5pAy7ummuGklL3sollJOycs",
-    authDomain: "dashboard-kanban.firebaseapp.com",
-    databaseURL: "https://dashboard-kanban.firebaseio.com",
-    projectId: "dashboard-kanban",
-    storageBucket: "dashboard-kanban.appspot.com",
-    messagingSenderId: "429316283039",
-    appId: "1:429316283039:web:e22e263dceddfb84"
-  };
+    $(document).ready(async(e)=>{
 
-  firebase.initializeApp(firebaseConfig);
-  var database = firebase.database();
+      var rootRef = firebase.database().ref();
+      var setores = [];
 
-  var boards = [];
+      var urlRef = rootRef.child("Setores");
+      await urlRef.once("value", function(snapshot) {
+        snapshot.forEach((child)=>{
+          console.log(child.val());
 
-  var rootRef = firebase.database().ref();
-  var urlRef = rootRef.child("Entry");
-  urlRef.once("value", function(snapshot) {
-    snapshot.forEach(function(child) {
+          setores[child.val()] = [];
 
-      console.log(child.val());
-
-      var board = {
-        id: child.key,
-        title: child.val().title,
-        class: "info,good",
-        dragTo: ["_working"],
-        item: [
-        {
-          id: "_test_delete",
-          title: "Try drag this (Look the console)",
-          drag: function(el, source) {
-            console.log("START DRAG: " + el.dataset.eid);
-          },
-          dragend: function(el) {
-            console.log("END DRAG: " + el.dataset.eid);
-          },
-          drop: function(el) {
-            console.log("DROPPED: " + el.dataset.eid);
-          }
-        }]
-      }
-
-      boards.push(board);
-      console.log(board);
-    });
-  }).then((sn)=>{
-    console.log('boards');
-    console.log(boards);
-
-    var KanbanTest = new jKanban({
-    element: "#myKanban",
-    gutter: "10px",
-    widthBoard: "350px",
-    click: function(el) {
-      console.log("Trigger on all items click!");
-    },
-    buttonClick: function(el, boardId) {
-
-
-
-
-      console.log(el);
-      console.log(boardId);
-      var formItem = document.createElement("form");
-      formItem.setAttribute("class", "itemform");
-      formItem.innerHTML =
-      '<div class="form-group"><textarea class="form-control" rows="2" autofocus></textarea></div><div class="form-group"><button type="submit" class="btn btn-primary btn-xs pull-right">Submit</button><button type="button" id="CancelBtn" class="btn btn-default btn-xs pull-right">Cancel</button></div>';
-
-      KanbanTest.addForm(boardId, formItem);
-      formItem.addEventListener("submit", function(e) {
-        e.preventDefault();
-        var text = e.target[0].value;
-        KanbanTest.addElement(boardId, {
-          title: text
+          $('.kanban').append(
+            "<div class='d-flex'>"+
+            "<div id="+child.val()+">"+
+            "<div class='kanban-title-board bg-dark mx-auto px-auto pt-2 text-center h-5 text-white'>"+child.val()+"</div>"+
+            "</div>"+
+            "</div>"
+            );
         });
-        formItem.parentNode.removeChild(formItem);
       });
-      document.getElementById("CancelBtn").onclick = function() {
-        formItem.parentNode.removeChild(formItem);
-      };
-    },
-    addItemButton: true,
-    boards: boards
-  });
 
-  var toDoButton = document.getElementById("addToDo");
-  toDoButton.addEventListener("click", function() {
-    KanbanTest.addElement("_todo", {
-      title: "Test Add"
-    });
-  });
+      var urlRef = rootRef.child("Entry");
+      await urlRef.once("value", function(snapshot) {
+        snapshot.forEach(function(child) {
 
-  var addBoardDefault = document.getElementById("addDefault");
-  addBoardDefault.addEventListener("click", function() {
-    KanbanTest.addBoards([
-    {
-      id: "_default",
-      title: "Kanban Default",
-      item: [
-      {
-        title: "Default Item"
-      },
-      {
-        title: "Default Item 2"
-      },
-      {
-        title: "Default Item 3"
-      }
-      ]
-    }
-    ]);
-  });
+          setores[child.val().setor].push(child)
 
-  var removeBoard = document.getElementById("removeBoard");
-  removeBoard.addEventListener("click", function() {
-    KanbanTest.removeBoard("_done");
-  });
+        });
+      }).then(async (sn)=>{
 
-  var removeElement = document.getElementById("removeElement");
-  removeElement.addEventListener("click", function() {
-    KanbanTest.removeElement("_test_delete");
-  });
+        var keys = Object.keys(setores);
 
-  var allEle = KanbanTest.getBoardElements("_todo");
-  allEle.forEach(function(item, index) {
-        //console.log(item);
+        await keys.map(async function(e){
+          var boards = [];
+          await setores[e].forEach(function(child){
+            var board = {
+              id: child.key,
+              title: child.val().title,
+              class: "bg-success",
+              dragTo: ["_working"],
+              item: [
+              {
+                id: "_test_delete",
+                title: child.val().content,
+                drag: function(el, source) {
+                  console.log("START DRAG: " + el.dataset.eid);
+                },
+                dragend: function(el) {
+                  console.log("END DRAG: " + el.dataset.eid);
+                },
+                drop: function(el) {
+                  console.log("DROPPED: " + el.dataset.eid);
+                }
+              }]
+            };
+
+            boards.push(board);
+
+          });
+
+          var KanbanTest = new jKanban({
+            element: "#"+e,
+            gutter: "10px",
+            widthBoard: "300px",
+            click: function(el) {
+              console.log("Trigger on all items click!");
+            },
+            buttonClick: function(el, boardId) {
+
+              var formItem = document.createElement("form");
+              formItem.setAttribute("class", "itemform");
+              formItem.innerHTML =
+              '<div class="form-group"><textarea class="form-control" rows="2" autofocus></textarea></div><div class="form-group"><button type="submit" class="btn btn-primary btn-xs pull-right">Submit</button><button type="button" id="CancelBtn" class="btn btn-default btn-xs pull-right">Cancel</button></div>';
+
+              KanbanTest.addForm(boardId, formItem);
+              formItem.addEventListener("submit", function(e) {
+                e.preventDefault();
+                var text = e.target[0].value;
+                KanbanTest.addElement(boardId, {
+                  title: text
+                });
+                formItem.parentNode.removeChild(formItem);
+              });
+              document.getElementById("CancelBtn").onclick = function() {
+                formItem.parentNode.removeChild(formItem);
+              };
+            },
+            addItemButton: true,
+            boards: boards
+          });
+
+        })      
+
       });
+
+
+    /*var clientes = [];
+
+    var urlRef = rootRef.child("Cliente");
+    await urlRef.once("value", function(snapshot) {
+      snapshot.forEach(function(child) {
+
+        var board = {
+          id: child.key,
+          title: child.key,
+          class: "bg-success",
+          dragTo: ["_working"],
+          item: [
+          {
+            id: "_test_delete",
+            title: child.val().Endereco,
+            drag: function(el, source) {
+              console.log("START DRAG: " + el.dataset.eid);
+            },
+            dragend: function(el) {
+              console.log("END DRAG: " + el.dataset.eid);
+            },
+            drop: function(el) {
+              console.log("DROPPED: " + el.dataset.eid);
+            }
+          }]
+        }
+        clientes.push(board);
+      })
+    }).then((sn)=>{
+
+      var KanbanTest = new jKanban({
+        element: "#myKanban2",
+        gutter: "10px",
+        widthBoard: "300px",
+        click: function(el) {
+          console.log("Trigger on all items click!");
+        },
+        buttonClick: function(el, boardId) {
+
+          var formItem = document.createElement("form");
+          formItem.setAttribute("class", "itemform");
+          formItem.innerHTML =
+          '<div class="form-group"><textarea class="form-control" rows="2" autofocus></textarea></div><div class="form-group"><button type="submit" class="btn btn-primary btn-xs pull-right">Submit</button><button type="button" id="CancelBtn" class="btn btn-default btn-xs pull-right">Cancel</button></div>';
+
+          KanbanTest.addForm(boardId, formItem);
+          formItem.addEventListener("submit", function(e) {
+            e.preventDefault();
+            var text = e.target[0].value;
+            KanbanTest.addElement(boardId, {
+              title: text
+            });
+            formItem.parentNode.removeChild(formItem);
+          });
+          document.getElementById("CancelBtn").onclick = function() {
+            formItem.parentNode.removeChild(formItem);
+          };
+        },
+        addItemButton: true,
+        boards: clientes
+      });
+    });*/
+
+
+
   });
 
-  
-    </script>
-  </body>
-  </html>
+
+</script>
+</body>
+</html>
